@@ -1,0 +1,34 @@
+---
+title: "Prediction Assignment"
+author: "Justin Meyer"
+date: "January 13, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+
+# Get data
+
+testing <- read.csv("pml-testing.csv")
+training <- read.csv("pml-training.csv")
+
+# The outcome to predict is
+summary(training$classe)
+
+# Delete the row number and user name columns
+training$X <- NULL
+training$user_name <- NULL
+
+# Create model
+library(caret)
+gbm_fit <- train(classe ~ ., data = training, 
+                 method = "gbm")
+
+
+```
