@@ -6,12 +6,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = NA)
 ```
 
-## How I Built My Model
+## Building the Model
 
-First I read in the csv files.
+First I read in the csv files. The data come from http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har.
 
 ```{r}
 
@@ -64,26 +64,31 @@ rm(data)
 
 ```
 
-Next I created a random forest model based on the training data. I chose a random forest because it provided accurate results on the training data and because it is easy to interpret. The model predicts the field "classe" using the other available fields.
+Next I created a conditional inference tree model based on the training data. I chose a conditional inference tree because it works with the specified classification problem, provided accurate results on the training data, and ran quickly. The model predicts the field "classe" using the other available fields.
 
-*How I used cross validation:* I used _k-fold cross validation_ to evaluate the accuracy of the model using the training data.
+**How I used cross validation: I used k-fold cross validation to evaluate the accuracy of the model using the training data. This is how the accuracy of the model on the training set is produced. This information suggests whether or not the model will be useful at predicting the outcome variable using new data sets.**
 
 ```{r}
 
+# Specify parallel processing
 library(parallel)
 library(doParallel)
-cluster <- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
+cluster <- makeCluster(detectCores() - 1) # leave out one core
 registerDoParallel(cluster)
 
+# Specify how to do cross validation
 train_control <- trainControl(method = "cv", 
                               number = 3)
 
+# Fit the model
 fit <- train(classe ~ ., 
                 data = training, 
                 method = "ctree",
                 trControl = train_control)
 
 ```
+
+# Checking the Model
 
 The below output shows that the model performs well on the training data, with an accuracy of `r round(max(fit$results$Accuracy) * 100, 1)`%.
 
@@ -109,17 +114,21 @@ plot(fit)
 
 ```
 
-Next I used the validation data set to check the accuracy of my model on new data. I made a prediction for each of the records in the validation set and then compared that to the actual "classe" value. *I expect that the out of sample error will be about 12% since accuracy on the validation set is about 88%* 
+## Checking the Out of Sample Error with the Validation Set
+
+Next I used the validation data set to check the accuracy of my model on new data. I made a prediction for each of the records in the validation set and then compared that to the actual "classe" value. **I expect that the out of sample error will be about 12% since accuracy on the validation set is about 88%, with a 95% confidence interval of about 87% to 89%.**
 
 ```{r}
 
 validation_prediction <- predict(fit, validation)
 
-confusion <- confusionMatrix(validation_prediction, validation$classe)
+confusionMatrix(validation_prediction, validation$classe)
 
 ```
 
-Finally, I use the random forest model to predict the class for each of the testing set records.
+## Using the Model to Make Predictions on the Test Set
+
+Finally, I use the ctree model to predict the class for each of the testing set records.
 
 ```{r}
 
