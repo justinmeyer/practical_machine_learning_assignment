@@ -1,7 +1,7 @@
 ---
 title: "Prediction Assignment"
 author: "Justin Meyer"
-date: "January 13, 2018"
+date: "January 18, 2018"
 output: html_document
 ---
 
@@ -18,17 +18,30 @@ knitr::opts_chunk$set(echo = TRUE)
 testing <- read.csv("pml-testing.csv")
 training <- read.csv("pml-training.csv")
 
-# The outcome to predict is
+# The outcome to predict is classe
 summary(training$classe)
 
-# Delete the row number and user name columns
-training$X <- NULL
-training$user_name <- NULL
+# Review the available data
+str(training)
+
+# Select a subset of variables to use
+training <- subset(training, 
+                   select = c("classe", 
+                              "roll_belt", "pitch_belt", "yaw_belt", "total_accel_belt",
+                              "roll_arm", "pitch_arm", "yaw_arm", "total_accel_arm",
+                              "roll_dumbbell", "pitch_dumbbell", "yaw_dumbbell", "total_accel_dumbbell",
+                              "roll_forearm", "pitch_forearm", "yaw_forearm", "total_accel_forearm"))
+
+# Summarize selected variables
+summary(training)
 
 # Create model
 library(caret)
-gbm_fit <- train(classe ~ ., data = training, 
-                 method = "gbm")
+rf_fit <- train(classe ~ ., data = training, 
+                 method = "rf")
 
+rf_fit
+
+predict(rf_fit, testing)
 
 ```
